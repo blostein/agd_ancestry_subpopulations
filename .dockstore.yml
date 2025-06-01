@@ -1,0 +1,5 @@
+version: 1.2
+workflows:
+  - subclass: WDL
+    primaryDescriptorPath: /ancestry_pipeline.wdl
+    name: ancestry_pipeline
