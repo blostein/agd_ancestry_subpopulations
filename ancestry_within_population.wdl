@@ -1005,8 +1005,14 @@ task ibd_pca_project {
     File psam_file
     Int n_pcs = 20
     String target_name
-  }
 
+    Int memory_gb = 20
+    String docker = "hkim298/plink_1.9_2.0:20230116_20230707"
+  
+  }
+  
+  Int disk_size = ceil(size([pgen_file, pvar_file, psam_file], "GB") * 4) + 20
+  
   command <<<
     set -euo pipefail
 
