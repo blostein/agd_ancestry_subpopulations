@@ -955,6 +955,10 @@ task subset_pgen_by_ancestry {
     command <<<
     set -euo pipefail
 
+    ln -s ${pgen_file} base.pgen
+    ln -s ${psam_file} base.psam
+    ln -s ${pvar_file} base.pvar
+
     # Extract base filename without extension
     base_name=$(basename ~{pgen_file} .pgen)
     output_prefix="~{target_ancestry}_${base_name}"
@@ -993,12 +997,6 @@ task subset_pgen_by_ancestry {
     disks: "local-disk " + disk_size + " HDD"
     memory: memory_gb + " GiB"
   }
-
-  preamble <<<
-    ln -s ${pgen_file} base.pgen
-    ln -s ${psam_file} base.psam
-    ln -s ${pvar_file} base.pvar
-  >>>
 }
 
 task ibd_pca_project {
