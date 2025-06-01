@@ -139,11 +139,10 @@ workflow agd_ancestry_workflow{
 
     # now filter to just those individuals in the selected ancestry 
     scatter(idx in range(length(chromosome))) {
-        String chromosome_per_ancestry= chromosomes[idx]
+        String chromosome_per_ancestry = chromosomes[idx]
         File pgen_file_per_ancestry = my_pgen_files[idx]
         File pvar_file_per_ancestry = my_pvar_files[idx]
         File psam_file_per_ancestry = my_psam_files[idx]
-        ancestry_set = ancestry_set
 
         #subset to jus those individuals in the ancestry file using plink 
         call subset_pgen_by_ancestry{
