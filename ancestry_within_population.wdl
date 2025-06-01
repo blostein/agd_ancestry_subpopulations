@@ -152,7 +152,7 @@ workflow agd_ancestry_workflow{
                 psam_file = psam_file_per_ancestry,
                 id_map_file = id_map_file,
                 target_ancestry = ancestry_set,
-                ancestry_column = ancestry_column
+                ancestry_column = ancestry_column,
                 iid_column = iid_column
         }
     }
