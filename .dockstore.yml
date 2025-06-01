@@ -1,5 +1,5 @@
 version: 1.2
 workflows:
   - subclass: WDL
-    primaryDescriptorPath: /ancestry_pipeline.wdl
-    name: ancestry_pipeline
+    primaryDescriptorPath: /ancestry_within_population.wdl
+    name: ancestry_pipeline_within_population
