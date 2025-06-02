@@ -1018,29 +1018,29 @@ task ibd_pca_project {
     set -euo pipefail
 
     # Link input files
-    ln -s ~{pgen_file} input.pgen
-    ln -s ~{pvar_file} input.pvar
-    ln -s ~{psam_file} input.psam
+    ln -s $pgen_file} input.pgen
+    ln -s ${pvar_file} input.pvar
+    ln -s ${psam_file} input.psam
 
     # Step 1: Convert to .bed format for PLINK1.9
-    plink2 --pfile input --make-bed --out ~{target_name}_step1
+    plink2 --pfile input --make-bed --out ${target_name}_step1
 
     # Step 2: Estimate IBD
-    plink --bfile ~{target_name}_step1 --genome --out ~{target_name}_ibd
+    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd
 
     # Step 3: Identify related individuals
-    awk 'NR > 1 && $10 > 0.2 { print $1, $2; print $3, $4; }' ~{target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
+    awk 'NR > 1 && $10 > 0.2 { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
 
     # Step 4: Determine unrelated individuals
-    awk '{ print $1, $2 }' ~{target_name}_step1.fam > all_samples.txt
-    comm -23 <(sort all_samples.txt) <(sort ~{target_name}_related.txt) > ~{target_name}_unrelated.txt
+    awk '{ print $1, $2 }' ${target_name}_step1.fam > all_samples.txt
+    comm -23 <(sort all_samples.txt) <(sort ${target_name}_related.txt) > ${target_name}_unrelated.txt
 
     # Step 5: PCA on unrelated
     plink2 \
       --pfile input \
-      --keep ~{target_name}_unrelated.txt \
+      --keep ${target_name}_unrelated.txt \
       --pca approx ~{n_pcs} \
-      --out ~{target_name}_pca_unrelated
+      --out ${target_name}_pca_unrelated
 
     # Step 6: Project related
     start_col=3
@@ -1048,10 +1048,10 @@ task ibd_pca_project {
 
     plink2 \
       --pfile input \
-      --keep ~{target_name}_related.txt \
-      --score ~{target_name}_pca_unrelated.eigenvec var-autosome cols=+scoresums \
+      --keep ${target_name}_related.txt \
+      --score ${target_name}_pca_unrelated.eigenvec var-autosome cols=+scoresums \
       --score-col-nums ${start_col}-${end_col} \
-      --out ~{target_name}_projected_related
+      --out ${target_name}_projected_related
 
     # Step 7: Combine PCs into one file
     awk -v OFS="\t" 'NR==1 {next} { $1=$1; print $1, $2, substr($0, index($0,$3)), "PCA" }' ${target_name}_pca_unrelated.eigenvec > ${target_name}_pca_combined.tsv
