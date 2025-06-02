@@ -34,12 +34,11 @@ workflow agd_ancestry_workflow{
         String? project_id
         String target_gcp_folder
 
-        # optional inputs for PCA - required if running PCA 
-
-        File? pca_variants_extract_file
-        File? pca_loadings_file
-        File? pca_af_file
-
+        #inputs for subsetting ancestries
+        File id_map_file
+        String ancestry_set
+        String ancestry_column
+        String iid_column = "GRID"
 
         # optional inputs for spike in data - required if merging spike in data 
 
@@ -220,9 +219,9 @@ workflow agd_ancestry_workflow{
     if(run_scope){
         scatter (idx in range(length(chromosomes))) {
             String chromosome_for_scope = chromosomes[idx]
-            File pgen_file_for_scope = my_pgen_files[idx]
-            File pvar_file_for_scope = my_pvar_files[idx]
-            File psam_file_for_scope = my_psam_files[idx]
+            File pgen_file_for_scope =  subset_pgen_by_ancestry.subset_pgen[idx]
+            File pvar_file_for_scope =  subset_pgen_by_ancestry.subset_pvar[idx]
+            File psam_file_for_scope =  subset_pgen_by_ancestry.subset_psam[idx]
             String replaced_sample_name_for_scope = "~{chromosome_for_scope}.psam"
 
             #I think I need this to get the IDs correctly as GRIDS
