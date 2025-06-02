@@ -35,7 +35,7 @@ workflow agd_ancestry_workflow{
         String target_gcp_folder
 
         #inputs for subsetting ancestries
-        File id_map_file
+        File ancestry_id_file
         String ancestry_set
         String ancestry_column
         String iid_column = "GRID"
@@ -149,7 +149,7 @@ workflow agd_ancestry_workflow{
                 pgen_file = pgen_file_per_ancestry,
                 pvar_file = pvar_file_per_ancestry,
                 psam_file = psam_file_per_ancestry,
-                id_map_file = id_map_file,
+                ancestry_file = ancestry_id_file,
                 target_ancestry = ancestry_set,
                 ancestry_column = ancestry_column,
                 iid_column = iid_column
