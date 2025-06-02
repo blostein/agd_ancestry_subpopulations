@@ -1023,6 +1023,8 @@ task ibd_pca_project {
     ln -s ~{pvar_file} input.pvar
     ln -s ~{psam_file} input.psam
 
+    target_name=~{target_name}
+
     # Step 1: Convert to .bed format for PLINK1.9
     plink2 --pfile input --make-bed --out ${target_name}_step1
 
