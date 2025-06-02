@@ -61,6 +61,9 @@ workflow agd_ancestry_workflow{
 
         String? scope_plink2_LD_filter_option = "--indep-pairwise 50000 80 0.1"
         File? scope_long_range_ld_file
+
+        String? pca_plink2_LD_filter_option = "--indep-pairwise 50 5 0.2"
+        String? pca_plink2_maf_filter = "--maf 0.05"
         Int? K = 4
         Int? seed = 1234
     }
@@ -171,8 +174,8 @@ workflow agd_ancestry_workflow{
                     pvar_file = pvar_file_for_pca,
                     psam_file = psam_file_for_pca,
                     long_range_ld_file = scope_long_range_ld_file,
-                    plink2_maf_filter = scope_plink2_maf_filter,
-                    plink2_LD_filter_option = scope_plink2_LD_filter_option,
+                    plink2_maf_filter = pca_plink2_maf_filter,
+                    plink2_LD_filter_option = pca_plink2_LD_filter_option,
                     chromosome = chromosome_for_pca
             }
         }
