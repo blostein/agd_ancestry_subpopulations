@@ -164,7 +164,6 @@ workflow agd_ancestry_workflow{
             File psam_file_for_pca = subset_pgen_by_ancestry.subset_psam[idx]
             String replaced_sample_name_for_pca = "~{chromosome_for_pca}.psam"
 
-
             #remove high LD regions, LD prune, and maf filter 
              call PreparePlink as PreparePlinkPCA{
                 input:
@@ -174,7 +173,7 @@ workflow agd_ancestry_workflow{
                     long_range_ld_file = scope_long_range_ld_file,
                     plink2_maf_filter = scope_plink2_maf_filter,
                     plink2_LD_filter_option = scope_plink2_LD_filter_option,
-                    chromosome = chromosome_for_scope 
+                    chromosome = chromosome_for_pca
             }
         }
 
