@@ -1024,12 +1024,13 @@ task ibd_pca_project {
     ln -s ~{psam_file} input.psam
 
     target_name=~{target_name}
+    mem_for_plink=$(((~{memory_gb}-3) * 1024))  # Give buffer and convert GB to MB
 
     # Step 1: Convert to .bed format for PLINK1.9
     plink2 --pfile input --make-bed --out ${target_name}_step1
 
     # Step 2: Estimate IBD
-    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd
+    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} 
 
     # Step 3: Identify related individuals
     awk 'NR > 1 && $10 > 0.2 { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
@@ -1043,7 +1044,8 @@ task ibd_pca_project {
       --pfile input \
       --keep ${target_name}_unrelated.txt \
       --pca approx ~{n_pcs} \
-      --out ${target_name}_pca_unrelated
+      --out ${target_name}_pca_unrelated \
+      --memory ${mem_for_plink} 
 
     # Step 6: Project related
     start_col=3
