@@ -1050,7 +1050,7 @@ task ibd_pca_project {
       --pfile input \
       --keep ~{target_name}_related.txt \
       --score ~{target_name}_pca_unrelated.eigenvec var-autosome cols=+scoresums \
-      --score-col-nums ~{start_col}-~{end_col} \
+      --score-col-nums ${start_col}-${end_col} \
       --out ~{target_name}_projected_related
 
     # Step 7: Combine PCs into one file
