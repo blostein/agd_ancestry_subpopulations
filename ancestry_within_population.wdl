@@ -974,18 +974,14 @@ task subset_pgen_by_ancestry {
 
     # Create keep file with FID=0 and matching IID
     awk -v ac="$ancestry_col" -v ic="$iid_col" -v anc="~{target_ancestry}" \
-      'BEGIN {FS=OFS="\t"} NR > 1 && $ac == anc {print "0", $ic}' ~{ancestry_file} > keep_ids.txt
+      'BEGIN {FS=OFS="\t"} NR > 1 && $ac == anc {print $ic}' ~{ancestry_file} > keep_ids.txt
 
-    # Subset with plink2
+    awk 'NR==FNR { keep[$1]; next } $2 in keep { print $1, $2 }' OFS='\t' keep_ids.txt base.psam > keep_ids_fids.txt
+
+    # Subset with plink2    
     plink2 \
       --pfile base \
-      --const-fid 0 \
-      --make-pgen \
-      --out intermediate
-    
-    plink2 \
-      --pfile intermediate \
-      --keep keep_ids.txt \
+      --keep keep_ids_fids.txt \
       --make-pgen \
       --out "$output_prefix"
   >>>
