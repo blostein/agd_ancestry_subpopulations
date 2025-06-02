@@ -138,13 +138,13 @@ workflow agd_ancestry_workflow{
     Array[File] my_psam_files=select_first([Merge1000genomesAGD.merge_spike_out_psam_file, source_psam_files])
 
     # now filter to just those individuals in the selected ancestry 
-    scatter(idx in range(length(chromosome))) {
+    scatter(idx in range(length(chromosomes))) {
         String chromosome_per_ancestry = chromosomes[idx]
         File pgen_file_per_ancestry = my_pgen_files[idx]
         File pvar_file_per_ancestry = my_pvar_files[idx]
         File psam_file_per_ancestry = my_psam_files[idx]
 
-        #subset to jus those individuals in the ancestry file using plink 
+        #subset to just those individuals in the ancestry file using plink 
         call subset_pgen_by_ancestry{
             input:
                 pgen_file = pgen_file_per_ancestry,
