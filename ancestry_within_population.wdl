@@ -1018,9 +1018,9 @@ task ibd_pca_project {
     set -euo pipefail
 
     # Link input files
-    ln -s $pgen_file} input.pgen
-    ln -s ${pvar_file} input.pvar
-    ln -s ${psam_file} input.psam
+    ln -s ~{pgen_file} input.pgen
+    ln -s ~{pvar_file} input.pvar
+    ln -s ~{psam_file} input.psam
 
     # Step 1: Convert to .bed format for PLINK1.9
     plink2 --pfile input --make-bed --out ${target_name}_step1
