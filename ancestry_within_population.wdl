@@ -980,6 +980,11 @@ task subset_pgen_by_ancestry {
     plink2 \
       --pfile base \
       --const-fid 0 \
+      --make-pgen \
+      --out intermediate
+    
+    plink2 \
+      --pfile intermediate \
       --keep keep_ids.txt \
       --make-pgen \
       --out "$output_prefix"
