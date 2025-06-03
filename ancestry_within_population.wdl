@@ -1007,13 +1007,16 @@ task ibd_pca_project {
     File psam_file
     Int n_pcs = 20
     String target_name
+    Int PI_HAT = 0.2
 
     Int memory_gb = 20
     String docker = "hkim298/plink_1.9_2.0:20230116_20230707"
+    Int? disk_size_multiplier = 4
+    Int? disk_size_addition = 20
   
   }
   
-  Int disk_size = ceil(size([pgen_file, pvar_file, psam_file], "GB") * 4) + 20
+  Int disk_size = ceil(size([pgen_file, pvar_file, psam_file], "GB") * disk_size_multiplier) + disk_size_addition
   
   command <<<
     set -euo pipefail
@@ -1024,16 +1027,17 @@ task ibd_pca_project {
     ln -s ~{psam_file} input.psam
 
     target_name=~{target_name}
+    pihat=~{PI_HAT}
     mem_for_plink=$(((~{memory_gb}-3) * 1024))  # Give buffer and convert GB to MB
 
     # Step 1: Convert to .bed format for PLINK1.9
     plink2 --pfile input --make-bed --out ${target_name}_step1
 
     # Step 2: Estimate IBD
-    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} 
+    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${pihat} 
 
     # Step 3: Identify related individuals
-    awk 'NR > 1 && $10 > 0.2 { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
+    awk 'NR > 1 && $10 > ${pihat} { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
 
     # Step 4: Determine unrelated individuals
     awk '{ print $1, $2 }' ${target_name}_step1.fam > all_samples.txt
