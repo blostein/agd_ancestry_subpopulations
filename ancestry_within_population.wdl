@@ -1008,7 +1008,7 @@ task ibd_pca_project {
     File psam_file
     Int n_pcs = 20
     String target_name
-    Int PI_HAT = 0.2
+    Float PI_HAT = 0.2
 
     Int memory_gb = 20
     String docker = "hkim298/plink_1.9_2.0:20230116_20230707"
