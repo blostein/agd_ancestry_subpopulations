@@ -1038,7 +1038,7 @@ task ibd_pca_project {
     plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${pihat} 
 
     # Step 3: Identify related individuals
-    awk 'NR > 1 && $10 > ${pihat} { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
+    awk -v pihat="${pihat}" 'NR > 1 && $10 > pihat { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
 
     # Step 4: Determine unrelated individuals
     awk '{ print $1, $2 }' ${target_name}_step1.fam > all_samples.txt
