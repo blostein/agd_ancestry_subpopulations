@@ -64,7 +64,8 @@ workflow agd_ancestry_workflow{
 
         String? pca_plink2_LD_filter_option = "--indep-pairwise 50 5 0.2"
         String? pca_plink2_maf_filter = "--maf 0.05"
-        Int? K = 4
+        Int? K_supervised = 4
+        Int? K_unsupervised =4
         Int? seed = 1234
     }
 
@@ -265,7 +266,7 @@ workflow agd_ancestry_workflow{
                 bed_file = ConvertPgenToBedForScope.convert_Pgen_out_bed,
                 bim_file = ConvertPgenToBedForScope.convert_Pgen_out_bim,
                 fam_file = ConvertPgenToBedForScope.convert_Pgen_out_fam,
-                K = K,
+                K = K_unsupervised,
                 output_string = target_prefix,
                 seed = seed
         }
@@ -290,7 +291,7 @@ workflow agd_ancestry_workflow{
                     bed_file = PreparePlinkSupervised.prepare_plink_supervised_out_bed,
                     bim_file = PreparePlinkSupervised.prepare_plink_supervised_out_bim,
                     fam_file = PreparePlinkSupervised.prepare_plink_supervised_out_fam,
-                    K = K,
+                    K = K_supervised,
                     output_string = target_prefix,
                     seed = seed,
                     topmed_freq = QCAllelesBim.out_frq
