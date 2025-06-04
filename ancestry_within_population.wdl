@@ -1035,7 +1035,7 @@ task ibd_pca_project {
     plink2 --pfile input --make-bed --out ${target_name}_step1
 
     # Step 2: Estimate IBD
-    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${pihat} 
+    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${threshold} 
 
     # Step 3: create initial set of all individuals and extract related pairs
     genome_file="${target_name}_ibd.genome"
