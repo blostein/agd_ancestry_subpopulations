@@ -1028,7 +1028,7 @@ task ibd_pca_project {
     ln -s ~{psam_file} input.psam
 
     target_name=~{target_name}
-    pihat=~{PI_HAT}
+    threshold=~{PI_HAT}
     mem_for_plink=$(((~{memory_gb}-3) * 1024))  # Give buffer and convert GB to MB
 
     # Step 1: Convert to .bed format for PLINK1.9
@@ -1037,18 +1037,36 @@ task ibd_pca_project {
     # Step 2: Estimate IBD
     plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${pihat} 
 
-    # Step 3: Identify related individuals
-    awk -v pihat="${pihat}" 'NR > 1 && $10 > pihat { print $1, $2; print $3, $4; }' ${target_name}_ibd.genome | sort | uniq > ${target_name}_related.txt
+    # Step 3: create initial set of all individuals and extract related pairs
+    genome_file="${target_name}_ibd.genome"
+    awk 'NR > 1 { print $1, $2; print $3, $4 }' "$genome_file" | sort | uniq > all_samples.txt
+    awk -v thresh="$threshold" 'NR > 1 && $10 > thresh { print $1, $2, $3, $4 }' "$genome_file" > related_pairs.txt
 
-    # Step 4: Determine unrelated individuals
-    awk '{ print $1, $2 }' ${target_name}_step1.fam > all_samples.txt
-    comm -23 <(sort all_samples.txt) <(sort ${target_name}_related.txt) > ${target_name}_unrelated.txt
+    # Step 4: Greedily remove one idndividual from each related pair 
+    > removed.txt  # empty file to store removed individuals
+
+    while read fid1 iid1 fid2 iid2; do
+        id1="$fid1 $iid1"
+        id2="$fid2 $iid2"
+
+        # If neither already removed, arbitrarily remove the second
+        if ! grep -Fxq "$id1" removed.txt && ! grep -Fxq "$id2" removed.txt; then
+            echo "$id2" >> removed.txt
+        fi
+    done < related_pairs.txt
+
+    sort all_samples.txt > all_samples.sorted.txt
+    sort removed.txt | uniq > removed.sorted.txt
+    comm -23 all_samples.sorted.txt removed.sorted.txt > ${target_name}_unrelated.txt   
+    echo "Count of unrelated samples:"
+    wc -l ${target_name}_unrelated.txt
 
     # Step 5: PCA on unrelated
     plink2 \
       --pfile input \
       --keep ${target_name}_unrelated.txt \
-      --pca approx ~{n_pcs} \
+      --freq counts \
+      --pca ~{n_pcs} approx allele-wts vcols=chrom,ref,alt  \
       --out ${target_name}_pca_unrelated \
       --memory ${mem_for_plink} 
 
@@ -1056,10 +1074,16 @@ task ibd_pca_project {
     start_col=3
     end_col=$((2 + ~{n_pcs}))
 
+    #https://groups.google.com/g/plink2-users/c/W6DL5-hs_Q4/m/b_o3JMrxAwAJ
+    #https://groups.google.com/g/plink2-users/c/ZO84YhMYabc
+
     plink2 \
       --pfile input \
-      --keep ${target_name}_related.txt \
-      --score ${target_name}_pca_unrelated.eigenvec var-autosome cols=+scoresums \
+      --keep removed.sorted.txt \
+      --read-freq ${target_name}_pca_unrelated.acount \
+      --score ${target_name}_pca_unrelated.eigenvec \
+      variance-standardize \
+      cols=-scoreavgs,+scoresums \
       --score-col-nums ${start_col}-${end_col} \
       --out ${target_name}_projected_related
 
