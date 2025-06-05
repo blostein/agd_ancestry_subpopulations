@@ -217,6 +217,16 @@ workflow agd_ancestry_workflow{
                     target_gcp_folder = select_first([target_gcp_folder])
             }
         }
+
+         if(defined(target_gcp_folder)){
+            call http_GcpUtils.MoveOrCopyOneFile as CopyFile_PCAthree {
+                input:
+                    source_file = ibd_pca_project.eigenvectors,
+                    is_move_file = false,
+                    project_id = project_id,
+                    target_gcp_folder = select_first([target_gcp_folder])
+            }
+        }
     }
 
     if(run_scope){
@@ -1039,7 +1049,7 @@ task ibd_pca_project {
 
     # Step 3: create initial set of all individuals and extract related pairs
     genome_file="${target_name}_ibd.genome"
-    awk 'NR > 1 { print $1, $2; print $3, $4 }' "$genome_file" | sort | uniq > all_samples.txt
+    awk 'NR > 1 { print $1, $2}' input.psam | sort | uniq > all_samples.txt
     awk -v thresh="$threshold" 'NR > 1 && $10 > thresh { print $1, $2, $3, $4 }' "$genome_file" > related_pairs.txt
 
     # Step 4: Greedily remove one idndividual from each related pair 
@@ -1066,7 +1076,7 @@ task ibd_pca_project {
       --pfile input \
       --keep ${target_name}_unrelated.txt \
       --freq counts \
-      --pca ~{n_pcs} approx allele-wts vcols=chrom,ref,alt  \
+      --pca approx ~{n_pcs} allele-wts vcols=chrom,ref,alt  \
       --out ${target_name}_pca_unrelated \
       --memory ${mem_for_plink} 
 
@@ -1077,25 +1087,25 @@ task ibd_pca_project {
     #https://groups.google.com/g/plink2-users/c/W6DL5-hs_Q4/m/b_o3JMrxAwAJ
     #https://groups.google.com/g/plink2-users/c/ZO84YhMYabc
 
+    #because it is suggested to compare 'apples to apples', I project all samples into the same space, rather than just projected unrelated samples
+    end_col=$((5 + ~{n_pcs}))
+
     plink2 \
       --pfile input \
       --keep removed.sorted.txt \
       --read-freq ${target_name}_pca_unrelated.acount \
-      --score ${target_name}_pca_unrelated.eigenvec \
-      variance-standardize \
-      cols=-scoreavgs,+scoresums \
-      --score-col-nums ${start_col}-${end_col} \
-      --out ${target_name}_projected_related
+      --score ${target_name}_pca_unrelated.eigenvec.allele 2 5 header-read variance-standardize \
+      --score-col-nums 6-${end_col} \
+      --out ${target_name}_projected_all_samples
 
-    # Step 7: Combine PCs into one file
-    awk -v OFS="\t" 'NR==1 {next} { $1=$1; print $1, $2, substr($0, index($0,$3)), "PCA" }' ${target_name}_pca_unrelated.eigenvec > ${target_name}_pca_combined.tsv
-
-    awk -v OFS="\t" 'NR==1 {next} { print $1, $2, $4, $5, $6, $7, $8, $9, $10, $11, $12, "Projected" }' ${target_name}_projected_related.sscore >> ${target_name}_pca_combined.tsv
-  >>>
+    # Step 7: Add a column indicating if the sample was included in the original PC 
+    awk 'NR==FNR {ids[$1]; next} {print $0, ($1 in ids ? "related" : "unrelated")}' removed.sorted.txt ${target_name}_projected_all_samples.sscore > ${target_name}_pca_combined.tsv
+ >>>
 
   output {
     File pca_merged = "${target_name}_pca_combined.tsv"
     File eigenvalues = "${target_name}_pca_unrelated.eigenval"
+    File eigenvectors = "${target_name}_pca_unrelated.eigenvec"
     File ibd_genome = "${target_name}_ibd.genome"
     File related_ids = "${target_name}_related.txt"
     File unrelated_ids = "${target_name}_unrelated.txt"
