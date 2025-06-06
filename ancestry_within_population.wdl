@@ -1076,6 +1076,7 @@ task ibd_pca_project {
       --pfile input \
       --keep ${target_name}_unrelated.txt \
       --freq counts \
+      --ac-founders \
       --pca approx ~{n_pcs} allele-wts vcols=chrom,ref,alt  \
       --out ${target_name}_pca_unrelated \
       --memory ${mem_for_plink} 
