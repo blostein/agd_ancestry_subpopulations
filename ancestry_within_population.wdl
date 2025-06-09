@@ -1107,9 +1107,6 @@ task ibd_pca_project {
     File pca_merged = "${target_name}_pca_combined.tsv"
     File eigenvalues = "${target_name}_pca_unrelated.eigenval"
     File eigenvectors = "${target_name}_pca_unrelated.eigenvec"
-    File ibd_genome = "${target_name}_ibd.genome"
-    File related_ids = "${target_name}_related.txt"
-    File unrelated_ids = "${target_name}_unrelated.txt"
   }
 
     runtime {
