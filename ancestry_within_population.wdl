@@ -1093,7 +1093,6 @@ task ibd_pca_project {
 
     plink2 \
       --pfile input \
-      --keep removed.sorted.txt \
       --read-freq ${target_name}_pca_unrelated.acount \
       --score ${target_name}_pca_unrelated.eigenvec.allele 2 5 header-read variance-standardize \
       --score-col-nums 6-${end_col} \
