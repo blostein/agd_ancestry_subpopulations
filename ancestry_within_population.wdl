@@ -1019,6 +1019,7 @@ task ibd_pca_project {
     Int n_pcs = 20
     String target_name
     Float PI_HAT = 0.2
+    Int my_n_splits = 100
 
     Int memory_gb = 20
     String docker = "hkim298/plink_1.9_2.0:20230116_20230707"
@@ -1039,16 +1040,31 @@ task ibd_pca_project {
 
     target_name=~{target_name}
     threshold=~{PI_HAT}
+    n_splits=~{my_n_splits}
     mem_for_plink=$(((~{memory_gb}-3) * 1024))  # Give buffer and convert GB to MB
 
     # Step 1: Convert to .bed format for PLINK1.9
     plink2 --pfile input --make-bed --out ${target_name}_step1
 
-    # Step 2: Estimate IBD
-    plink --bfile ${target_name}_step1 --genome --out ${target_name}_ibd --memory ${mem_for_plink} --min ${threshold} 
+    # Step 2a: Estimate IBD
+    for i in $(seq 1 $n_splits); do
+    plink --bfile ${target_name}_step1 \
+          --genome \
+          --parallel ${i} ${n_splits} \
+          --out ${target_name}_ibd_part${i} \
+          --memory ${mem_for_plink} \
+          --min ${threshold}
+    done
+
+    # Step 2b: Concatenate all *.genome files from the parallel runs
+    head -n 1 ${target_name}_ibd_part1.genome > ${target_name}_ibd_all.genome  # Header
+    for i in $(seq 1 $n_splits); do
+        tail -n +2 ${target_name}_ibd_part${i}.genome >> ${target_name}_ibd_all.genome
+    done
+
 
     # Step 3: create initial set of all individuals and extract related pairs
-    genome_file="${target_name}_ibd.genome"
+    genome_file="${target_name}_ibd_all.genome"
     awk 'NR > 1 { print $1, $2}' input.psam | sort | uniq > all_samples.txt
     awk -v thresh="$threshold" 'NR > 1 && $10 > thresh { print $1, $2, $3, $4 }' "$genome_file" > related_pairs.txt
 
@@ -1097,6 +1113,7 @@ task ibd_pca_project {
       --score ${target_name}_pca_unrelated.eigenvec.allele 2 5 header-read variance-standardize \
       --score-col-nums 6-${end_col} \
       --out ${target_name}_projected_all_samples
+      --memory ${mem_for_plink}
 
     # Step 7: Add a column indicating if the sample was included in the original PC 
     awk 'NR==FNR {ids[$1]; next} {print $0, ($1 in ids ? "related" : "unrelated")}' removed.sorted.txt ${target_name}_projected_all_samples.sscore > ${target_name}_pca_combined.tsv
