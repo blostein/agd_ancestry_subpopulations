@@ -1057,9 +1057,9 @@ task ibd_pca_project {
     done
 
     # Step 2b: Concatenate all *.genome files from the parallel runs
-    head -n 1 ${target_name}_ibd_part1.genome > ${target_name}_ibd_all.genome  # Header
+    head -n 1 ${target_name}_ibd_part1.genome.1 > ${target_name}_ibd_all.genome  # Header
     for i in $(seq 1 $n_splits); do
-        tail -n +2 ${target_name}_ibd_part${i}.genome >> ${target_name}_ibd_all.genome
+        tail -n +2 ${target_name}_ibd_part${i}.genome.${i} >> ${target_name}_ibd_all.genome
     done
 
 
