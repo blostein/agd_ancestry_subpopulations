@@ -1019,7 +1019,7 @@ task ibd_pca_project {
     Int n_pcs = 20
     String target_name
     Float PI_HAT = 0.2
-    Int my_n_splits = 100
+    Int my_n_splits = 25
 
     Int memory_gb = 20
     String docker = "hkim298/plink_1.9_2.0:20230116_20230707"
@@ -1113,7 +1113,6 @@ task ibd_pca_project {
       --score ${target_name}_pca_unrelated.eigenvec.allele 2 5 header-read variance-standardize \
       --score-col-nums 6-${end_col} \
       --out ${target_name}_projected_all_samples
-      --memory ${mem_for_plink}
 
     # Step 7: Add a column indicating if the sample was included in the original PC 
     awk 'NR==FNR {ids[$1]; next} {print $0, ($1 in ids ? "related" : "unrelated")}' removed.sorted.txt ${target_name}_projected_all_samples.sscore > ${target_name}_pca_combined.tsv
